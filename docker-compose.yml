@@ -1,10 +1,14 @@
 version: '3'
 services:
   daemon:
-    image: 'lsioarmhf/nextcloud'
+    image: 'nextcloud:16'
+    hostname: cloud.domain.net
     volumes:
-      - ./volumes/config:/config
-      - ./volumes/data:/data
+      - ${CLOUD_VOLUME_CONFIG:-./volumes/config}:/var/www/html/config
+      - ${CLOUD_VOLUME_DATA:-./volumes/data}:/var/www/html/data
+      - ${CLOUD_VOLUME_APPS:-./volumes/apps}:/var/www/html/apps
+      - ${CLOUD_VOLUME_CUSTOM_APPS:-./volumes/custom_apps}:/var/www/html/custom_apps
+      - ${CLOUD_VOLUME_THEMES:-./volumes/themes}:/var/www/html/themes
     networks:
       - web
       - databases
@@ -15,10 +19,13 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=web"
-        - "traefik.protocol=https"
-        - "traefik.port=443"
-        - "traefik.frontend.rule=Host:cloud.zalkeen.net"
-        - "traefik.frontend.port=443"
+        - "traefik.port=80"
+        - "traefik.frontend.rule=Host:cloud.domain.net"
+        - "traefik.frontend.port=80"
+  cache:
+    image: 'redis'
+    volumes:
+      - ${CLOUD_VOLUME_CACHE:-./volumes/cache}:/data
 networks:
   web:
     external: true
